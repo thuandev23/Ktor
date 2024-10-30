@@ -30,4 +30,8 @@ dependencies {
     implementation(libs.ktor.server.config.yaml)
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)
+
+    implementation("org.ktorm:ktorm-core:4.1.1")
+    implementation("com.mysql:mysql-connector-j:8.3.0")
+
 }

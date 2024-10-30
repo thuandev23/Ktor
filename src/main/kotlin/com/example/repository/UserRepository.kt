@@ -4,7 +4,14 @@ import com.example.model.User
 import java.util.*
 
 class UserRepository {
-    private val users = mutableListOf<User>()
+    private val users = mutableListOf(
+        User(
+            id = UUID.randomUUID(),
+            username = "ADMIN",
+            password = "ADMIN",
+            role = "ADMIN"
+        )
+    )
 
     fun findAll(): List<User> = users
 

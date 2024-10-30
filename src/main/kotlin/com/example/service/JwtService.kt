@@ -25,15 +25,16 @@ class JwtService(
         .withIssuer(issuer)
         .build()
 
-    fun createAccessToken(username: String): String = createdJwtToken(username, 3_600_000)
+    fun createAccessToken(username: String, role: String): String = createdJwtToken(username, role, 3_600_000)
 
-    fun createRefreshToken(username: String): String = createdJwtToken(username, 86_400_000)
+    fun createRefreshToken(username: String, role: String): String = createdJwtToken(username, role, 86_400_000)
 
-    private fun createdJwtToken(username: String, expireIn: Int): String =
+    private fun createdJwtToken(username: String, role:String, expireIn: Int): String =
         JWT.create()
             .withAudience(audience)
             .withIssuer(issuer)
             .withClaim("username", username)
+            .withClaim("role", role)
             .withExpiresAt(Date(System.currentTimeMillis() + expireIn))
             .sign(Algorithm.HMAC256(secret))
 

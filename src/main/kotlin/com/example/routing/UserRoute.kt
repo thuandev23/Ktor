@@ -4,6 +4,7 @@ import com.example.model.User
 import com.example.routing.request.UserRequest
 import com.example.routing.response.UserResponse
 import com.example.service.UserService
+import com.example.util.autherized
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -29,37 +30,43 @@ fun Route.userRoute(
         call.respond(message = HttpStatusCode.Created)
 
         authenticate {
-            get {
-                val users = userService.findAll()
-                call.respond(
-                    message = users.map(User::toResponse)
-                )
+            autherized("ADMIN") {
+                get {
+                    val users = userService.findAll()
+                    call.respond(
+                        message = users.map(User::toResponse)
+                    )
+                }
             }
         }
 
         authenticate("another-auth") {
-            get("/{id}") {
-                val id = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest)
-                val foundUser = userService.findById(id = id) ?: return@get call.respond(HttpStatusCode.NotFound)
-                if (foundUser.username != extractPrincipleUser(call)) {
-                    return@get call.respond(HttpStatusCode.NotFound)
-                }
-                call.respond(
-                    message = foundUser.toResponse()
-                )
+            autherized("ADMIN", "USER") {
+                get("/{id}") {
+                    val id = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest)
+                    val foundUser = userService.findById(id = id) ?: return@get call.respond(HttpStatusCode.NotFound)
+                    if (foundUser.username != extractPrincipleUser(call)) {
+                        return@get call.respond(HttpStatusCode.NotFound)
+                    }
+                    call.respond(
+                        message = foundUser.toResponse()
+                    )
 
+                }
             }
         }
 
     }
 }
 
-fun extractPrincipleUser(call: ApplicationCall): String? = call.principal<JWTPrincipal>()?.payload?.getClaim("username")?.asString()
+fun extractPrincipleUser(call: ApplicationCall): String? =
+    call.principal<JWTPrincipal>()?.payload?.getClaim("username")?.asString()
 
 private fun UserRequest.toModel(): User = User(
     id = UUID.randomUUID(),
     username = this.username,
-    password = this.password
+    password = this.password,
+    role = "User"
 )
 
 private fun User.toResponse(): UserResponse = UserResponse(
